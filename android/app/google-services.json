@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "35309336713",
+    "project_id": "usersigninsignup-ccc20",
+    "storage_bucket": "usersigninsignup-ccc20.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:35309336713:android:c986aa11f3e372e0f72e58",
+        "android_client_info": {
+          "package_name": "com.example.firebaseauthsigninsignup"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCn12hBJqDAwRWlqra_ztMJfolzXqkOrks"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
