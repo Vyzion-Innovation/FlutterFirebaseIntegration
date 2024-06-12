@@ -108,8 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                       
-
                           Text(retrievedTasksList![index].description),
                           Text(retrievedTasksList![index].date),
                           Text(retrievedTasksList![index].category),
