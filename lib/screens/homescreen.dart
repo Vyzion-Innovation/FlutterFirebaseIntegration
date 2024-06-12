@@ -104,6 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: Text(retrievedTasksList![index].title),
                       leading: retrievedTasksList![index].imageurl != null
                               ? Image.network(retrievedTasksList![index].imageurl!)
+
+                              
                               : Image.network('https://picsum.photos/200'),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(retrievedTasksList![index].description),
                           Text(retrievedTasksList![index].date),
                           Text(retrievedTasksList![index].category),
-                          Text(retrievedTasksList![index].id),
                         ],
                       ),
                       trailing: PopupMenuButton<String>(

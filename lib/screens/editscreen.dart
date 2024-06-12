@@ -22,6 +22,7 @@ class _EditToDoPageState extends State<EditToDoPage> {
   @override
   void initState() {
     super.initState();
+    print(widget.task.user_id);
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -36,7 +37,8 @@ class _EditToDoPageState extends State<EditToDoPage> {
         selectedDate = picked;
         var outputFormat = DateFormat('dd-MMMM-yyyy');
         var outputDate = outputFormat.format(picked);
-        _dateController.text = outputDate;
+        _dateController.text =
+            outputDate; // Update _dateController with selected date
       });
     }
   }
@@ -55,15 +57,20 @@ class _EditToDoPageState extends State<EditToDoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Title'),
-                TextField(
+                TextFormField(
                   controller: _titleController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     filled: true,
                     fillColor: Color.fromARGB(255, 239, 234, 234),
                     contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
-                    labelText: widget.task.title,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a title';
+                    }
+                    return null;
+                  },
                 ),
               ],
             ),
@@ -76,16 +83,20 @@ class _EditToDoPageState extends State<EditToDoPage> {
                   onTap: () {
                     _selectDate(context);
                   },
-                  controller:
-                      _dateController, // Use _dateController for displaying selected date
-                  decoration: InputDecoration(
+                  controller: _dateController,
+                  decoration: const InputDecoration(
                     hintText: 'Select date',
                     filled: true,
                     fillColor: Color.fromARGB(255, 239, 234, 234),
                     contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
-                    labelText: widget.task.date,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a date';
+                    }
+                    return null;
+                  },
                 ),
               ],
             ),
@@ -94,15 +105,20 @@ class _EditToDoPageState extends State<EditToDoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Description'),
-                TextField(
+                TextFormField(
                   controller: _descriptionController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     filled: true,
                     fillColor: Color.fromARGB(255, 239, 234, 234),
                     contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
-                    labelText: widget.task.description,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
                 ),
               ],
             ),
@@ -111,15 +127,20 @@ class _EditToDoPageState extends State<EditToDoPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Add category'),
-                TextField(
+                TextFormField(
                   controller: _categoryController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     filled: true,
                     fillColor: Color.fromARGB(255, 239, 234, 234),
                     contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
-                    labelText: widget.task.category,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a category';
+                    }
+                    return null;
+                  },
                 ),
               ],
             ),
@@ -128,7 +149,7 @@ class _EditToDoPageState extends State<EditToDoPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _updateTask,
                   child: Text('Update'),
                 ),
                 ElevatedButton(
@@ -146,5 +167,37 @@ class _EditToDoPageState extends State<EditToDoPage> {
         ),
       ),
     );
+  }
+
+  // void _createTask(BuildContext context) async {
+  //   User? user = userData();
+
+  //   var outputFormat = DateFormat('yyyy-MM-dd');
+  //   var outputDate = outputFormat.format(selectedDate);
+
+  //   await FirebaseFirestore.instance.collection('tasks').add({
+  //     'title': _titleController.text,
+  //     'date': outputDate,
+  //     'description': _descriptionController.text,
+  //     'category': _categoryController.text,
+  //     'id': user?.uid,
+  //     'imageurl': imageUrl
+  //   });
+  //   Navigator.pop(context);
+  // }
+
+  Future<void> _updateTask() async {
+    final FirebaseFirestore _db = FirebaseFirestore.instance;
+    var outputFormat = DateFormat('yyyy-MM-dd');
+    var outputDate = outputFormat.format(selectedDate);
+
+    await _db.collection('tasks').doc(widget.task.taskId).update({
+      'title': _titleController.text, 
+      'description': _descriptionController.text,
+      'category': _categoryController.text,
+      'date' : outputDate
+    });
+
+    Navigator.of(context).pop();
   }
 }

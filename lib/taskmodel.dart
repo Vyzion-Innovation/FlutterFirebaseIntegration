@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TaskModel {
-  final String id;
+  final String user_id;
   final String title;
   final String description;
   final String category;
@@ -11,7 +11,7 @@ class TaskModel {
 
 
   TaskModel({
-    required this.id,
+    required this.user_id,
     required this.title,
     required this.description,
     required this.category,
@@ -23,13 +23,13 @@ class TaskModel {
 
   factory TaskModel.fromMap(Map<String, dynamic> map) {
     return TaskModel(
-      id: map['id'] as String,
+      user_id: map['id'] as String,
       title: map['title'] as String,
       description: map['description'] as String,
       category: map['category'] as String,
       date: map['date'] as String,
       taskId: map['taskId'] as String,
-      imageurl: map['imageurl'] as String,
+     imageurl: map['imageurl'] as String,
 
     );
   }
@@ -40,13 +40,13 @@ class TaskModel {
       'description': description,
       'category': category,
       'date': date,
-      'id' : id,
+      'id' : user_id,
       'imageurl' : imageurl
     };
   }
 
    TaskModel.fromDocumentSnapshot(DocumentSnapshot<Map<String, dynamic>> doc)
-      : id = doc.data()!["id"],
+      : user_id = doc.data()!["id"],
       taskId = doc.id,
         title = doc.data()!["title"],
         description = doc.data()!["description"],
