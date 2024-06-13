@@ -4,6 +4,8 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -21,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: ModalProgressHUD(
         inAsyncCall: showSpinner,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -36,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: kTextFieldDecoration.copyWith(
                     hintText: 'Enter your email',
                   )),
-              SizedBox(
+              const SizedBox(
                 height: 8.0,
               ),
               TextField(
@@ -48,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   decoration: kTextFieldDecoration.copyWith(
                       hintText: 'Enter your password.')),
-              SizedBox(
+              const SizedBox(
                 height: 24.0,
               ),
               SizedBox(height: 50,
@@ -79,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       });
                     }
                   },
-                  child: Text('SIGN IN'),
+                  child: const Text('SIGN IN'),
                 ),
               ),
             ],

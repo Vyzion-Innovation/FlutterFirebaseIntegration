@@ -1,17 +1,18 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebaseauthsigninsignup/functions/image_helper.dart';
+import 'package:firebaseauthsigninsignup/taskmodel.dart';
 import 'package:flutter/material.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 
 class ToDoPage extends StatefulWidget {
-  const ToDoPage({Key? key}) : super(key: key);
+  final TaskModel? task;
+
+  const ToDoPage({super.key, this.task});
 
   @override
   State<ToDoPage> createState() => _ToDoPageState();
@@ -22,15 +23,41 @@ class _ToDoPageState extends State<ToDoPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController();
+  String dropdownvalue = 'Item 1';
+
   DateTime selectedDate = DateTime.now();
   File? _image;
   ImagePicker? picker;
   String? imageUrl;
+  List<String> retrievedcategoryList = [];
 
   @override
   void initState() {
     super.initState();
+    _initRetrieval();
+
+    if (widget.task != null) {
+      _titleController.text = widget.task!.title ?? '';
+      _descriptionController.text = widget.task!.description;
+      _dateController.text = widget.task!.date;
+      imageUrl = widget.task!.imageurl;
+    }
+  }
+
+  Future<void> _initRetrieval() async {
+    var cList = await fetchCategory();
+    setState(() {
+      retrievedcategoryList = cList;
+
+      dropdownvalue = retrievedcategoryList.first;
+    });
+  }
+
+  Future<List<String>> fetchCategory() async {
+    final FirebaseFirestore db = FirebaseFirestore.instance;
+    QuerySnapshot<Map<String, dynamic>> snapshot =
+        await db.collection("categoryList").get();
+    return snapshot.docs.map((doc) => doc['category'] as String).toList();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -45,8 +72,7 @@ class _ToDoPageState extends State<ToDoPage> {
         selectedDate = picked;
         var outputFormat = DateFormat('dd-MMMM-yyyy');
         var outputDate = outputFormat.format(picked);
-        _dateController.text =
-            outputDate; // Update _dateController with selected date
+        _dateController.text = outputDate;
       });
     }
   }
@@ -72,15 +98,26 @@ class _ToDoPageState extends State<ToDoPage> {
                       CircleAvatar(
                         radius: 100,
                         child: ClipOval(
-                          child: _image != null
-                              ? Image.file(
-                                  _image!,
+                          child: imageUrl != null
+                              ? Image.network(
+                                  imageUrl!,
                                   fit: BoxFit.cover,
                                   height: 200,
                                   width: 200,
                                 )
-                              : Image.network(
-                                  'https://picsum.photos/200'), // Use Image.asset for local assets
+                              : _image != null
+                                  ? Image.file(
+                                      _image!,
+                                      fit: BoxFit.cover,
+                                      height: 200,
+                                      width: 200,
+                                    )
+                                  : Image.network(
+                                      'https://picsum.photos/200',
+                                      fit: BoxFit.cover,
+                                      height: 200,
+                                      width: 200,
+                                    ),
                         ),
                       ),
                       Padding(
@@ -123,7 +160,7 @@ class _ToDoPageState extends State<ToDoPage> {
                       decoration: const InputDecoration(
                         filled: true,
                         fillColor: Color.fromARGB(255, 239, 234, 234),
-                        contentPadding: EdgeInsets.zero,
+                        contentPadding: EdgeInsets.all(8),
                         border: InputBorder.none,
                       ),
                       validator: (value) {
@@ -149,7 +186,7 @@ class _ToDoPageState extends State<ToDoPage> {
                         hintText: 'Select date',
                         filled: true,
                         fillColor: Color.fromARGB(255, 239, 234, 234),
-                        contentPadding: EdgeInsets.zero,
+                        contentPadding: EdgeInsets.all(8),
                         border: InputBorder.none,
                       ),
                       validator: (value) {
@@ -171,7 +208,7 @@ class _ToDoPageState extends State<ToDoPage> {
                       decoration: const InputDecoration(
                         filled: true,
                         fillColor: Color.fromARGB(255, 239, 234, 234),
-                        contentPadding: EdgeInsets.zero,
+                        contentPadding: EdgeInsets.all(8),
                         border: InputBorder.none,
                       ),
                       validator: (value) {
@@ -188,19 +225,25 @@ class _ToDoPageState extends State<ToDoPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Add category'),
-                    TextFormField(
-                      controller: _categoryController,
+                    DropdownButtonFormField<String>(
+                      value: dropdownvalue,
+                      icon: const Icon(Icons.keyboard_arrow_down),
                       decoration: const InputDecoration(
                         filled: true,
                         fillColor: Color.fromARGB(255, 239, 234, 234),
-                        contentPadding: EdgeInsets.zero,
+                        contentPadding: EdgeInsets.all(8),
                         border: InputBorder.none,
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a category';
-                        }
-                        return null;
+                      items: retrievedcategoryList.map((String items) {
+                        return DropdownMenuItem(
+                          value: items,
+                          child: Text(items),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          dropdownvalue = newValue!;
+                        });
                       },
                     ),
                   ],
@@ -211,7 +254,18 @@ class _ToDoPageState extends State<ToDoPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        uploadFile(context);
+                        if (widget.task == null) {
+                          uploadFile(() {
+                            // Handle the received data in the child widget
+                            if (!mounted) return;
+                            Navigator.of(context).pop();
+                          });
+                        } else {
+                          _updateTask(() {
+                            if (!mounted) return;
+                            Navigator.of(context).pop();
+                          });
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -224,9 +278,9 @@ class _ToDoPageState extends State<ToDoPage> {
                       textStyle: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.bold),
                     ),
-                    child: const Text(
-                      'Create a new task',
-                      style: TextStyle(color: Colors.white),
+                    child: Text(
+                      widget.task == null ? 'Create a new task' : 'Update task',
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
@@ -239,12 +293,12 @@ class _ToDoPageState extends State<ToDoPage> {
   }
 
   User? userData() {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final User? user = _auth.currentUser;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final User? user = auth.currentUser;
     return user;
   }
 
-  void _createTask(BuildContext context) async {
+  void _createTask(VoidCallback onSuccess) async {
     User? user = userData();
 
     var outputFormat = DateFormat('yyyy-MM-dd');
@@ -254,30 +308,49 @@ class _ToDoPageState extends State<ToDoPage> {
       'title': _titleController.text,
       'date': outputDate,
       'description': _descriptionController.text,
-      'category': _categoryController.text,
+      'category': dropdownvalue,
       'id': user?.uid,
       'imageurl': imageUrl
     });
-    Navigator.pop(context);
+
+    onSuccess.call();
   }
 
-  Future uploadFile(BuildContext context) async {
+  Future uploadFile(VoidCallback onSuccess) async {
     if (_image != null) {
       final fileName = basename(_image!.path);
       final destination = 'files/$fileName';
 
       try {
-        final _storage = FirebaseStorage.instance;
-        final ref = _storage.ref(destination);
+        final storage = FirebaseStorage.instance;
+        final ref = storage.ref(destination);
 
         UploadTask uploadTask = ref.putFile(_image!);
         imageUrl = await (await uploadTask).ref.getDownloadURL();
-        _createTask(context);
+
+        _createTask(onSuccess);
       } catch (e) {
-        print('error occured');
+        print('error occurred');
+        onSuccess.call();
       }
     } else {
-      _createTask(context);
+      _createTask(onSuccess);
     }
+  }
+
+  Future<void> _updateTask(VoidCallback onSuccess) async {
+    final FirebaseFirestore db = FirebaseFirestore.instance;
+    var outputFormat = DateFormat('yyyy-MM-dd');
+    var outputDate = outputFormat.format(selectedDate);
+
+    await db.collection('tasks').doc(widget.task!.taskId).update({
+      'title': _titleController.text,
+      'description': _descriptionController.text,
+      'category': dropdownvalue,
+      'date': outputDate,
+      'imageurl': _image,
+    });
+
+    onSuccess.call();
   }
 }

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TaskModel {
-  final String user_id;
-  final String title;
+  final String? user_id;
+  final String? title;
   final String description;
   final String category;
   final String date;

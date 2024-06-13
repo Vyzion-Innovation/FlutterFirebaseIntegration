@@ -17,7 +17,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Scaffold(
         backgroundColor: Colors.white,
         body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -28,22 +28,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => RegistrationScreen()),
+                              builder: (context) => const RegistrationScreen()),
                         );
                       },
-                      child: Text('Register User')),
+                      child: const Text('Register User')),
                 ),
-                SizedBox(height: 30,),
+                const SizedBox(height: 30,),
 
                 SizedBox(height: 60,
                   child: ElevatedButton(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => LoginScreen()),
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
                         );
                       },
-                      child: Text('SignIn User')),
+                      child: const Text('SignIn User')),
                 )
               ]),
         ));

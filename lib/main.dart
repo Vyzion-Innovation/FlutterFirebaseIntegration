@@ -17,7 +17,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   var isLogin = await autoLogin();
 
-  runApp(isLogin ? MyApp2() : MyApp());
+  runApp(isLogin ? const MyApp2() : const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -36,11 +36,11 @@ class MyApp extends StatelessWidget {
      initialRoute: '/',
   routes: {
     // When navigating to the "/" route, build the FirstScreen widget.
-    '/': (context) =>  WelcomeScreen(),
+    '/': (context) =>  const WelcomeScreen(),
     // When navigating to the "/second" route, build the SecondScreen widget.
-    '/second': (context) =>  LoginScreen(),
-    '/home': (context) =>  HomeScreen(),
-    '/todopage': (context) =>  ToDoPage(),
+    '/second': (context) =>  const LoginScreen(),
+    '/home': (context) =>  const HomeScreen(),
+    '/todopage': (context) =>  const ToDoPage(),
   },
 
      
@@ -62,11 +62,11 @@ class MyApp2 extends StatelessWidget {
      initialRoute: '/',
   routes: {
     // When navigating to the "/" route, build the FirstScreen widget.
-    '/': (context) =>  HomeScreen(),
+    '/': (context) =>  const HomeScreen(),
     // When navigating to the "/second" route, build the SecondScreen widget.
-    '/second': (context) =>  LoginScreen(),
-    '/home': (context) =>  HomeScreen(),
-    '/todopage': (context) =>  ToDoPage(),
+    '/second': (context) =>  const LoginScreen(),
+    '/home': (context) =>  const HomeScreen(),
+    '/todopage': (context) =>  const ToDoPage(),
   },
 
      

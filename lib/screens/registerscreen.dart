@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebaseauthsigninsignup/functions/image_helper.dart';
 import 'package:firebaseauthsigninsignup/screens/signinscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:path/path.dart';
@@ -32,7 +30,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('SignUp'),
+        title: const Text('SignUp'),
       ),
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
@@ -102,7 +100,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       },
                       decoration: kTextFieldDecoration.copyWith(
                           hintText: 'Enter your email')),
-                  SizedBox(
+                  const SizedBox(
                     height: 8.0,
                   ),
                   TextField(
@@ -114,7 +112,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       },
                       decoration: kTextFieldDecoration.copyWith(
                           hintText: 'Enter your Password')),
-                  SizedBox(
+                  const SizedBox(
                     height: 24.0,
                   ),
                   ElevatedButton(
@@ -126,23 +124,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         final newUser =
                             await _auth.createUserWithEmailAndPassword(
                                 email: email!, password: password!);
-                        if (newUser != null) {
-                          await uploadFile();
+                        await uploadFile();
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LoginScreen()),
-                          );
-                        }
-                      } catch (e) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LoginScreen()),
+                        );
+                                            } catch (e) {
                         print(e);
                       }
                       setState(() {
                         showSpinner = false;
                       });
                     },
-                    child: Text('SIgnUp'),
+                    child: const Text('SIgnUp'),
                   )
                 ],
               ),
@@ -174,8 +170,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final destination = 'files/$fileName';
 
     try {
-      final _storage = FirebaseStorage.instance;
-      final ref = _storage.ref(destination);
+      final storage = FirebaseStorage.instance;
+      final ref = storage.ref(destination);
        
         UploadTask uploadTask = ref.putFile(_image!);
         imageUrl = await (await uploadTask).ref.getDownloadURL();
@@ -187,8 +183,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Future<void> saveUserData() async {
     try {
-      final _firestore = FirebaseFirestore.instance;
-      await _firestore
+      final firestore = FirebaseFirestore.instance;
+      await firestore
           .collection('users')
           .doc(_auth.currentUser?.uid)
           .set({'photoURL': imageUrl, 'uid': _auth.currentUser?.uid});
