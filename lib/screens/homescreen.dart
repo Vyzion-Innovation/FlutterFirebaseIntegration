@@ -16,43 +16,87 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? loggedinUser;
-  List<TaskModel>? retrievedTasksList;
+  List<TaskModel>? retrievedTasksList = [];
   late List<String?> retrievedcategoryList;
   int _selectedIndex = 0;
+  QueryDocumentSnapshot<Object?>? _lastDocument;
+  final ScrollController _scrollController = ScrollController();
+  bool isLoading = false;
+  bool stopLoading = false;
 
   @override
   void initState() {
     super.initState();
-
     getCurrentUser();
     _initRetrieval();
+    _getComments();
+    _scrollController.addListener(_onScroll);
   }
 
   Future<void> _initRetrieval() async {
-    var list = await fetchTasks();
+// var list = await fetchTasks();
     var cList = await fetchCategory();
     setState(() {
-      retrievedTasksList = list;
+// retrievedTasksList = list;
       retrievedcategoryList = cList;
     });
   }
 
-  Future<List<TaskModel>> fetchTasks() async {
-    final FirebaseFirestore db = FirebaseFirestore.instance;
-    QuerySnapshot<Map<String, dynamic>> snapshot = await db
-        .collection("tasks")
-        .where('id', isEqualTo: loggedinUser!.uid)
-        .get();
-    return snapshot.docs
-        .map((docSnapshot) => TaskModel.fromDocumentSnapshot(docSnapshot))
+  List<TaskModel> modelToList(QuerySnapshot querySnapshot) {
+    var list = querySnapshot.docs
+        .map((docSnapshot) => TaskModel.fromDocument(
+            docSnapshot.data() as Map<String, dynamic>, docSnapshot.id))
         .toList();
+    return list;
+  }
+
+  void _getComments() async {
+    QuerySnapshot querySnapshot;
+
+    if (_lastDocument == null) {
+      querySnapshot = await FirebaseFirestore.instance
+          .collection("tasks")
+          .where('id', isEqualTo: loggedinUser!.uid)
+          .limit(8)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        _lastDocument = querySnapshot.docs.last;
+
+        setState(() {
+          retrievedTasksList = modelToList(querySnapshot);
+        });
+      }
+    } else {
+      querySnapshot = await FirebaseFirestore.instance
+          .collection("tasks")
+          .where('id', isEqualTo: loggedinUser!.uid)
+          .startAfterDocument(_lastDocument!)
+          .limit(8)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        print(querySnapshot.docs);
+        _lastDocument = querySnapshot.docs.last;
+         isLoading = false;
+
+        setState(() {
+          retrievedTasksList = [
+            ...retrievedTasksList!,
+            ...modelToList(querySnapshot)
+          ];
+        });
+      }
+      else {
+        isLoading = false;
+      }
+    }
   }
 
   Future<List<String>> fetchCategory() async {
     final FirebaseFirestore db = FirebaseFirestore.instance;
-    QuerySnapshot<Map<String, dynamic>> snapshot =
-        await db.collection("categoryList").get();
-    return snapshot.docs.map((doc) => doc['category'] as String).toList();
+    QuerySnapshot querySnapshot = await db.collection("categoryList").get();
+    return querySnapshot.docs.map((doc) => doc['category'] as String).toList();
   }
 
   Future<void> getCurrentUser() async {
@@ -64,26 +108,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> logout() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.clear();
-    await _auth.signOut().then((value) => Navigator.of(context)
-        .pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-            (route) => false));
-  }
-
-  Future<void> deleteTask(TaskModel taskModel) async {
-    print(taskModel.taskId);
-    final FirebaseFirestore db = FirebaseFirestore.instance;
-    await db.collection('tasks').doc(taskModel.taskId).delete();
-    _initRetrieval();
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _onScroll() {
+   
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent && isLoading == false) {
+          isLoading = true;
+      _getComments();
+    }
   }
 
   @override
@@ -110,84 +141,87 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTaskList() {
     return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ToDoPage()),
-              );
-              _initRetrieval();
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ToDoPage()),
+            );
+            _initRetrieval();
+          },
+        ),
+        title: const Text('Home Page'),
+        backgroundColor: Colors.lightBlueAccent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              logout();
             },
           ),
-          title: const Text('Home Page'),
-          backgroundColor: Colors.lightBlueAccent,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                logout();
-              },
-            ),
-          ],
-        ),
-        body: retrievedTasksList == null
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.builder(
-                itemCount: retrievedTasksList?.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return SingleChildScrollView(
-                    child: Card(
-                      child: ListTile(
-                        title: Text(retrievedTasksList![index].title ?? ''),
-                        leading: retrievedTasksList![index].imageurl != null
-                            ? Image.network(
-                                retrievedTasksList![index].imageurl!)
-                            : Image.network('https://picsum.photos/200'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(retrievedTasksList![index].description),
-                            Text(retrievedTasksList![index].date),
-                            Text(retrievedTasksList![index].category),
-                          ],
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          onSelected: (String value) async {
-                            if (value == 'edit') {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ToDoPage(
-                                        task: retrievedTasksList![index])),
-                              );
-                              _initRetrieval();
-                            } else if (value == 'delete') {
-                              deleteTask(retrievedTasksList![index]);
-                            }
-                          },
-                          itemBuilder: (BuildContext context) {
-                            return {'Edit', 'Delete'}.map((String choice) {
-                              return PopupMenuItem<String>(
-                                value: choice.toLowerCase(),
-                                child: Text(choice),
-                              );
-                            }).toList();
-                          },
-                        ),
+        ],
+      ),
+      body: retrievedTasksList == null
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              controller: _scrollController,
+              itemCount: retrievedTasksList!.length,
+              itemBuilder: (BuildContext context, int index) {
+                return SingleChildScrollView(
+                  
+                  child: Card(
+                    child: ListTile(
+                      title: Text(retrievedTasksList![index].title ?? ''),
+                      leading: retrievedTasksList![index].imageurl != null
+                          ? Image.network(retrievedTasksList![index].imageurl!)
+                          : Image.network('https://picsum.photos/200'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(retrievedTasksList![index].description),
+                          Text(retrievedTasksList![index].date),
+                          Text(retrievedTasksList![index].category),
+                        ],
+                      ),
+                      trailing: PopupMenuButton<String>(
+                        onSelected: (String value) async {
+                          if (value == 'edit') {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ToDoPage(task: retrievedTasksList![index]),
+                              ),
+                            );
+                            _initRetrieval();
+                          } else if (value == 'delete') {
+                            deleteTask(retrievedTasksList![index]);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) {
+                          return {'Edit', 'Delete'}.map((String choice) {
+                            return PopupMenuItem<String>(
+                              value: choice.toLowerCase(),
+                              child: Text(choice),
+                            );
+                          }).toList();
+                        },
                       ),
                     ),
-                  );
-                },
-              ));
+                  ),
+                );
+              },
+            ),
+    );
   }
 
   Widget _buildCategoryList() {
     return retrievedcategoryList == null
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
-            itemCount: retrievedcategoryList?.length,
+            itemCount: retrievedcategoryList.length,
             itemBuilder: (BuildContext context, int index) {
               return SingleChildScrollView(
                 child: Card(
@@ -198,5 +232,27 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           );
+  }
+
+  Future<void> logout() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.clear();
+    await _auth.signOut().then((value) => Navigator.of(context)
+        .pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+            (route) => false));
+  }
+
+  Future<void> deleteTask(TaskModel taskModel) async {
+    print(taskModel.taskId);
+    final FirebaseFirestore db = FirebaseFirestore.instance;
+    await db.collection('tasks').doc(taskModel.taskId).delete();
+    _initRetrieval();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 }

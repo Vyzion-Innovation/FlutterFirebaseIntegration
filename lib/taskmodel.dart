@@ -29,8 +29,7 @@ class TaskModel {
       category: map['category'] as String,
       date: map['date'] as String,
       taskId: map['taskId'] as String,
-     imageurl: map['imageurl'] as String,
-
+     imageurl: map['imageurl'] as String
     );
   }
 
@@ -45,14 +44,13 @@ class TaskModel {
     };
   }
 
-   TaskModel.fromDocumentSnapshot(DocumentSnapshot<Map<String, dynamic>> doc)
-      : user_id = doc.data()!["id"],
-      taskId = doc.id,
-        title = doc.data()!["title"],
-        description = doc.data()!["description"],
-        category = doc.data()!["category"],
-        date = doc.data()!["date"],
-        imageurl = doc.data()!["imageurl"];
-       
+    TaskModel.fromDocument(Map doc, String taskID)
+      : user_id = doc["id"],
+      taskId = taskID,
+        title = doc["title"],
+        description = doc["description"],
+        category = doc["category"],
+        date = doc["date"],
+        imageurl = doc["imageurl"];
 
 }

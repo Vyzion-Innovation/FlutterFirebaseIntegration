@@ -259,7 +259,8 @@ class _ToDoPageState extends State<ToDoPage> {
                             // Handle the received data in the child widget
                             if (!mounted) return;
                             Navigator.of(context).pop();
-                          });
+                          }
+                          );
                         } else {
                           _updateTask(() {
                             if (!mounted) return;
