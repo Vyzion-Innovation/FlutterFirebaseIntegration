@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebaseauthsigninsignup/screens/createtasks.dart';
-import 'package:firebaseauthsigninsignup/taskmodel.dart';
+import 'package:firebaseauthsigninsignup/screens/create_edit_tasks.dart';
+import 'package:firebaseauthsigninsignup/utilities/task_model.dart';
 
 
 Widget buildTaskList({
@@ -36,7 +36,7 @@ Widget buildTaskList({
     body: retrievedTasksList == null
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
-            itemCount: retrievedTasksList?.length,
+            itemCount: retrievedTasksList.length,
             itemBuilder: (BuildContext context, int index) {
               return SingleChildScrollView(
                 child: Card(
@@ -60,11 +60,11 @@ Widget buildTaskList({
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    ToDoPage(task: retrievedTasksList![index])),
+                                    ToDoPage(task: retrievedTasksList[index])),
                           );
                           initRetrieval();
                         } else if (value == 'delete') {
-                          deleteTask(retrievedTasksList![index]);
+                          deleteTask(retrievedTasksList[index]);
                         }
                       },
                       itemBuilder: (BuildContext context) {
@@ -85,7 +85,7 @@ Widget buildTaskList({
 }
 
 Widget buildCategoryList({
-  required List<String?> retrievedCategoryList,
+  required List<String>? retrievedCategoryList,
 }) {
   return retrievedCategoryList == null
       ? const Center(child: CircularProgressIndicator())
@@ -95,7 +95,7 @@ Widget buildCategoryList({
             return SingleChildScrollView(
               child: Card(
                 child: ListTile(
-                  title: Text(retrievedCategoryList[index]!),
+                  title: Text(retrievedCategoryList[index]),
                 ),
               ),
             );

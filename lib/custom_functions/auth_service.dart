@@ -5,12 +5,14 @@ import 'package:firebaseauthsigninsignup/screens/welcome.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  bool showSpinner = false;
+  String? email;
+  String? password;
   Future<User?> getCurrentUser() async {
     return _auth.currentUser;
   }
 
-  Future<void> logout(BuildContext context) async {
+  Future<void> onTapLogOut(BuildContext context) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.clear();
     await _auth.signOut().then((value) => Navigator.of(context)
@@ -18,4 +20,6 @@ class AuthService {
             MaterialPageRoute(builder: (context) => const WelcomeScreen()),
             (route) => false));
   }
+
+ 
 }

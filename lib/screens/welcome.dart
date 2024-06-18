@@ -1,5 +1,6 @@
-import 'package:firebaseauthsigninsignup/screens/registerscreen.dart';
-import 'package:firebaseauthsigninsignup/screens/signinscreen.dart';
+import 'package:firebaseauthsigninsignup/custom_functions/custom_button.dart';
+import 'package:firebaseauthsigninsignup/screens/register_screen.dart';
+import 'package:firebaseauthsigninsignup/screens/signin_screen.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -10,41 +11,39 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-
   @override
-
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white,
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                SizedBox(height: 60,
-                  child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const RegistrationScreen()),
-                        );
-                      },
-                      child: const Text('Register User')),
+                CustomButton(
+                  text: 'Register User',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RegistrationScreen()),
+                    );
+                  },
                 ),
-                const SizedBox(height: 30,),
-
-                SizedBox(height: 60,
-                  child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const LoginScreen()),
-                        );
-                      },
-                      child: const Text('SignIn User')),
-                )
+                const SizedBox(
+                  height: 30,
+                ),
+                CustomButton(
+                  text: 'Sign In User',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SignInScreen()),
+                    );
+                  },
+                ),
               ]),
         ));
   }

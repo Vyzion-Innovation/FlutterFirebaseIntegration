@@ -1,29 +1,31 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebaseauthsigninsignup/functions/image_helper.dart';
-import 'package:firebaseauthsigninsignup/screens/signinscreen.dart';
+import 'package:firebaseauthsigninsignup/custom_functions/custom_button.dart';
+import 'package:firebaseauthsigninsignup/custom_functions/image_helper.dart';
+import 'package:firebaseauthsigninsignup/screens/signin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:path/path.dart';
-//code for designing the UI of our text field where the user writes his email id or password
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   File? _image;
   ImagePicker? picker;
   final _auth = FirebaseAuth.instance;
-  String? imageUrl;
-  String? email;
-  String? password;
+  late String imageUrl;
+  late String _email;
+  late String _password;
   bool showSpinner = false;
 
   @override
@@ -69,17 +71,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         height: 37.2,
                         width: 37.2,
                         child: IconButton(
-                            color: Colors.white,
-                            onPressed: () async {
-                              File? image = await ImageHelper.getImageFromGallery();
-                              if (image != null) {
-                                setState(() {
-                                  _image = image;
-                                });
-                              }
-                            },
-                            icon: const Icon(Icons.camera_alt_outlined),
-                          ),
+                          color: Colors.white,
+                          onPressed: () async {
+                            File? image =
+                                await ImageHelper.getImageFromGallery();
+                            if (image != null) {
+                              setState(() {
+                                _image = image;
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.camera_alt_outlined),
+                        ),
                       ),
                     ),
                   ),
@@ -87,62 +90,78 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 80, 24, 0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  TextField(
-                      keyboardType: TextInputType.emailAddress,
-                      textAlign: TextAlign.center,
-                      onChanged: (value) {
-                        email = value;
-                      },
-                      decoration: kTextFieldDecoration.copyWith(
-                          hintText: 'Enter your email')),
-                  const SizedBox(
-                    height: 8.0,
-                  ),
-                  TextField(
-                      obscureText: true,
-                      textAlign: TextAlign.center,
-                      onChanged: (value) {
-                        password = value;
-                        //Do something with the user input.
-                      },
-                      decoration: kTextFieldDecoration.copyWith(
-                          hintText: 'Enter your Password')),
-                  const SizedBox(
-                    height: 24.0,
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      setState(() {
-                        showSpinner = true;
-                      });
-                      try {
-                        final newUser =
-                            await _auth.createUserWithEmailAndPassword(
-                                email: email!, password: password!);
-                        await uploadFile();
+                padding: const EdgeInsets.fromLTRB(24, 80, 24, 0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          textAlign: TextAlign.center,
+                          onChanged: (value) {
+                            _email = value;
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            // You can add more complex email validation here if needed
+                            return null;
+                          },
+                          decoration: kTextFieldDecoration.copyWith(
+                              hintText: 'Enter your email')),
+                      const SizedBox(
+                        height: 8.0,
+                      ),
+                      TextFormField(
+                          obscureText: true,
+                          textAlign: TextAlign.center,
+                          onChanged: (value) {
+                            _password = value;
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your Password';
+                            }
+                            // You can add more complex email validation here if needed
+                            return null;
+                          },
+                          decoration: kTextFieldDecoration.copyWith(
+                              hintText: 'Enter your Password')),
+                      const SizedBox(
+                        height: 24.0,
+                      ),
+                      CustomButton(
+                        text: 'Sign Up',
+                        onPressed: () async {
+                          setState(() {
+                            showSpinner = true;
+                          });
+                          if (_formKey.currentState!.validate()) {
+                            try {
+                              await _auth.createUserWithEmailAndPassword(
+                                  email: _email, password: _password);
+                              await uploadFile();
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LoginScreen()),
-                        );
-                                            } catch (e) {
-                        print(e);
-                      }
-                      setState(() {
-                        showSpinner = false;
-                      });
-                    },
-                    child: const Text('SIgnUp'),
-                  )
-                ],
-              ),
-            ),
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const SignInScreen()),
+                              );
+                            } catch (e) {
+                              debugPrint(e.toString());
+                            }
+                          }
+                          setState(() {
+                            showSpinner = false;
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                )),
           ],
         ),
       ),
@@ -172,12 +191,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       final storage = FirebaseStorage.instance;
       final ref = storage.ref(destination);
-       
-        UploadTask uploadTask = ref.putFile(_image!);
-        imageUrl = await (await uploadTask).ref.getDownloadURL();
+
+      UploadTask uploadTask = ref.putFile(_image!);
+      imageUrl = await (await uploadTask).ref.getDownloadURL();
       saveUserData();
     } catch (e) {
-      print('error occured');
+      debugPrint( 'error occured');
     }
   }
 
@@ -209,5 +228,4 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       borderRadius: BorderRadius.all(Radius.circular(32.0)),
     ),
   );
-  
 }

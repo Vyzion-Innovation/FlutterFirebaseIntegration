@@ -48,6 +48,8 @@ dependencies:
   path: ^1.9.0
   intl: ^0.19.0
   firebase_ui_auth: ^1.14.0
+  fancy_button_flutter: ^1.0.3+1
+  logger: ^1.0.0
 
   
  
@@ -68,15 +70,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+   - assets/noimage.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
